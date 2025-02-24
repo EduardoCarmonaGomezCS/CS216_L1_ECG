@@ -3,29 +3,29 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <algorithm>
 #include <iomanip>
 
 using namespace std;
 
-// Global constants for file names
 const string INPUT_FILE = "input.txt";
-const string OUTPUT_FILE = "output";
+const string OUTPUT_FILE = "output.txt";
 
-// Function prototypes
-void readFile(vector<int>& div5, vector<int>& div9, vector<int>& others);
-void printStats(const vector<int>& arr, const string& name);
-void bubbleSort(vector<int>& arr);
-void writeToFile(const vector<int>& div5, const vector<int>& div9, const vector<int>& others);
-double calculateMedian(vector<int> arr);
-double calculateAverage(const vector<int>& arr);
-int calculateSum(const vector<int>& arr);
+const int MAX_SIZE = 1000;
+
+void readFile(int div5[], int& size5, int div9[], int& size9, int others[], int& sizeOthers);
+void printStats(const int arr[], int size, const string& name);
+void bubbleSort(int arr[], int size);
+void writeToFile(const int div5[], int size5, const int div9[], int size9, const int others[], int sizeOthers);
+double calculateMedian(int arr[], int size);
+double calculateAverage(const int arr[], int size);
+int calculateSum(const int arr[], int size);
 
 int main() {
-    vector<int> div5, div9, others;
-    readFile(div5, div9, others);
+    int div5[MAX_SIZE], div9[MAX_SIZE], others[MAX_SIZE];
+    int size5 = 0, size9 = 0, sizeOthers = 0;
 
+    readFile(div5, size5, div9, size9, others, sizeOthers);
+    
     int choice;
     do {
         cout << "\nMenu:\n";
@@ -36,30 +36,30 @@ int main() {
         cin >> choice;
 
         switch (choice) {
-        case 1:
-            printStats(div5, "Divisible by 5");
-            printStats(div9, "Divisible by 9");
-            printStats(others, "Others");
-            break;
-        case 2:
-            bubbleSort(div5);
-            bubbleSort(div9);
-            bubbleSort(others);
-            cout << "Sorted arrays displayed.\n";
-            break;
-        case 3:
-            writeToFile(div5, div9, others);
-            cout << "Data written to " << OUTPUT_FILE << "\n";
-            break;
-        default:
-            cout << "Invalid choice. Try again.\n";
+            case 1:
+                printStats(div5, size5, "Divisible by 5");
+                printStats(div9, size9, "Divisible by 9");
+                printStats(others, sizeOthers, "Others");
+                break;
+            case 2:
+                bubbleSort(div5, size5);
+                bubbleSort(div9, size9);
+                bubbleSort(others, sizeOthers);
+                cout << "Sorted arrays displayed.\n";
+                break;
+            case 3:
+                writeToFile(div5, size5, div9, size9, others, sizeOthers);
+                cout << "Data written to " << OUTPUT_FILE << "\n";
+                break;
+            default:
+                cout << "Invalid choice. Try again.\n";
         }
     } while (choice != 3);
-
+    
     return 0;
 }
 
-void readFile(vector<int>& div5, vector<int>& div9, vector<int>& others) {
+void readFile(int div5[], int& size5, int div9[], int& size9, int others[], int& sizeOthers) {
     ifstream file(INPUT_FILE);
     if (!file) {
         cerr << "Error opening file: " << INPUT_FILE << "\n";
@@ -67,76 +67,75 @@ void readFile(vector<int>& div5, vector<int>& div9, vector<int>& others) {
     }
     int num;
     while (file >> num) {
-        if (num % 5 == 0) div5.push_back(num);
-        else if (num % 9 == 0) div9.push_back(num);
-        else others.push_back(num);
+        if (num % 5 == 0) div5[size5++] = num;
+        else if (num % 9 == 0) div9[size9++] = num;
+        else others[sizeOthers++] = num;
     }
     file.close();
 }
 
-void printStats(const vector<int>& arr, const string& name) {
+void printStats(const int arr[], int size, const string& name) {
     cout << "\n" << name << " Numbers:\n";
     cout << "---------------------------------\n";
-    if (arr.empty()) {
+    if (size == 0) {
         cout << "No values.\n";
         return;
     }
-    for (int num : arr) cout << num << " ";
+    for (int i = 0; i < size; ++i) cout << arr[i] << " ";
     cout << "\n";
-    cout << left << setw(10) << "Sum:" << calculateSum(arr) << "\n";
-    cout << left << setw(10) << "Average:" << calculateAverage(arr) << "\n";
-    cout << left << setw(10) << "Median:" << calculateMedian(arr) << "\n";
+    cout << left << setw(10) << "Sum:" << calculateSum(arr, size) << "\n";
+    cout << left << setw(10) << "Average:" << calculateAverage(arr, size) << "\n";
+    cout << left << setw(10) << "Median:" << calculateMedian(arr, size) << "\n";
 }
 
-void bubbleSort(vector<int>& arr) {
-    int n = arr.size();
-    for (int i = 0; i < n - 1; ++i)
-        for (int j = 0; j < n - i - 1; ++j)
+void bubbleSort(int arr[], int size) {
+    for (int i = 0; i < size - 1; ++i)
+        for (int j = 0; j < size - i - 1; ++j)
             if (arr[j] > arr[j + 1])
                 swap(arr[j], arr[j + 1]);
 }
 
-double calculateMedian(vector<int> arr) {
-    if (arr.empty()) return 0.0;
-    sort(arr.begin(), arr.end());
-    int n = arr.size();
-    return (n % 2 == 0) ? (arr[n / 2 - 1] + arr[n / 2]) / 2.0 : arr[n / 2];
+double calculateMedian(int arr[], int size) {
+    if (size == 0) return 0.0;
+    bubbleSort(arr, size);
+    return (size % 2 == 0) ? (arr[size / 2 - 1] + arr[size / 2]) / 2.0 : arr[size / 2];
 }
 
-double calculateAverage(const vector<int>& arr) {
-    if (arr.empty()) return 0.0;
-    return static_cast<double>(calculateSum(arr)) / arr.size();
+double calculateAverage(const int arr[], int size) {
+    if (size == 0) return 0.0;
+    return static_cast<double>(calculateSum(arr, size)) / size;
 }
 
-int calculateSum(const vector<int>& arr) {
+int calculateSum(const int arr[], int size) {
     int sum = 0;
-    for (int num : arr) sum += num;
+    for (int i = 0; i < size; ++i) sum += arr[i];
     return sum;
 }
 
-void writeToFile(const vector<int>& div5, const vector<int>& div9, const vector<int>& others) {
+void writeToFile(const int div5[], int size5, const int div9[], int size9, const int others[], int sizeOthers) {
     ofstream file(OUTPUT_FILE);
     if (!file) {
         cerr << "Error opening file: " << OUTPUT_FILE << "\n";
         return;
     }
-    auto writeArray = [&](const vector<int>& arr, const string& name) {
+    auto writeArray = [&](const int arr[], int size, const string& name) {
         file << name << " Numbers:\n";
         file << "---------------------------------\n";
-        if (arr.empty()) file << "No values.\n";
+        if (size == 0) file << "No values.\n";
         else {
-            for (int num : arr) file << num << " ";
+            for (int i = 0; i < size; ++i) file << arr[i] << " ";
             file << "\n";
-            file << left << setw(10) << "Sum:" << calculateSum(arr) << "\n";
-            file << left << setw(10) << "Average:" << calculateAverage(arr) << "\n";
-            file << left << setw(10) << "Median:" << calculateMedian(arr) << "\n\n";
+            file << left << setw(10) << "Sum:" << calculateSum(arr, size) << "\n";
+            file << left << setw(10) << "Average:" << calculateAverage(arr, size) << "\n";
+            file << left << setw(10) << "Median:" << calculateMedian(arr, size) << "\n\n";
         }
-        };
-    writeArray(div5, "Divisible by 5");
-    writeArray(div9, "Divisible by 9");
-    writeArray(others, "Others");
+    };
+    writeArray(div5, size5, "Divisible by 5");
+    writeArray(div9, size9, "Divisible by 9");
+    writeArray(others, sizeOthers, "Others");
     file.close();
 }
+
 /*Menu:
 1. Print values and statistics
 2. Print sorted values
